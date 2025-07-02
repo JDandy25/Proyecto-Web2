@@ -1,0 +1,66 @@
+.btnEditar {
+    margin: 0px 0px;
+    border: none;
+    background-color: #05c930;
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: var(--colorGeneral);
+}
+
+.btnBorrar {
+    width: 30px;
+    height: 30px;
+    margin: 0px 0px;
+    border: none;
+    background-color: #fd0d41;
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: var(--colorGeneral);
+}
+
+.btnDevolucion{
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    height: 25px;
+    margin: 0px 0px;
+    border: none;
+    background-color: #62c505;
+    padding: 0px 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: var(--colorGeneral);
+}
+
+.fa-arrow-right-arrow-left{
+    color: white;
+}
+
+
+.acciones {
+    display: flex;
+    gap: 5px;
+    width: 120px;
+}
+
+.fa-pen-to-square{
+    color: var(--colorGeneral);
+}
+
+
+
+
+
+
+
+/*******************/
+.datosRL{
+    margin: 0px 40px;
+    background-color: white;
+}
+
+.groupTextArea{
+    display: flex;
+    flex-direction: column;
+}

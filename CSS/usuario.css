@@ -1,0 +1,28 @@
+
+#modalRegistrarUsuario {
+    border: none;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 90%; 
+    max-width: 500px; 
+    margin: auto;
+    position: fixed; 
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    z-index: 1000; 
+    background-color: #fff;
+    
+
+}
+
+#modalRegistrarUsuario::backdrop {
+    background-color: rgba(0, 0, 0, 0.5); 
+    backdrop-filter: blur(3px); 
+}
+
+
+.modal.is-open {
+    display: block; 
+}
