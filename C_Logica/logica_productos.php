@@ -1,7 +1,7 @@
 <?php
 
 require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Datos/crud_productos.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_producto.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_productos.php';
 
 header('Content-Type: application/json');
 
@@ -41,6 +41,16 @@ switch ($_SERVER['REQUEST_METHOD']) {
                         ]);
                     }
                     break;
+                case 'contarCodigoProd':
+                    if (isset($_GET['prefijo'])) {
+                        contarCodigoProd($_GET['prefijo']);
+                    } else {
+                        echo json_encode([
+                            'status' => 'error',
+                            'message' => 'Falta el parámetro prefijo.'
+                        ]);
+                    }
+                    break;
                 default:
                     echo json_encode([
                         'status' => 'error',
@@ -76,18 +86,33 @@ switch ($_SERVER['REQUEST_METHOD']) {
 function registrarProducto()
 {
     global $crudProducto;
-    
+
     $producto = new Producto();
 
-    $inputData = json_decode(file_get_contents('php://input'), true);
+    // Usar $_POST porque el JS envía FormData
+    $producto->setNombre($_POST['nombre_producto'] ?? '');
+    $producto->setDescripcion($_POST['descripcion'] ?? '');
+    $producto->setCodigoProd($_POST['codigo'] ?? '');
+    $producto->setStock($_POST['stock'] ?? 0);
+    $producto->setIdCategoria($_POST['id_categoria'] ?? null);
+    $producto->setEstado($_POST['estado_producto'] ?? 1);
 
-    $producto->setNombre($inputData['nombre'] ?? '');
-    $producto->setDescripcion($inputData['descripcion'] ?? '');
-    $producto->setCodigoProd($inputData['codigo'] ?? '');
-    $producto->setStock($inputData['stock'] ?? 0);
-    $producto->setImagen($inputData['imagen'] ?? '');
-    $producto->setIdCategoria($inputData['id_categoria'] ?? null);
-    $producto->setEstado($inputData['estado'] ?? 1);
+    // Manejo de imagen
+    $rutaImagen = null;
+    if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+        $ext = pathinfo($_FILES['imagen']['name'], PATHINFO_EXTENSION);
+        $nombreUnico = uniqid('prod_', true) . '.' . strtolower($ext);
+        $carpetaDestino = $_SERVER['DOCUMENT_ROOT'] . '/Proyecto-Web2/imgProductos/';
+        if (!is_dir($carpetaDestino)) {
+            mkdir($carpetaDestino, 0777, true);
+        }
+        $rutaCompleta = $carpetaDestino . $nombreUnico;
+        if (move_uploaded_file($_FILES['imagen']['tmp_name'], $rutaCompleta)) {
+            // Guarda la ruta relativa para usarla en el frontend
+            $rutaImagen = '/Proyecto-Web2/imgProductos/' . $nombreUnico;
+        }
+    }
+    $producto->setImagen($rutaImagen);
 
     try {
         $crudProducto->insertar($producto);
@@ -314,6 +339,25 @@ function buscarProductos($nombre)
         echo json_encode([
             'status' => 'error',
             'message' => 'Error al buscar productos: ' . $e->getMessage()
+        ]);
+    }
+    exit();
+}
+
+function contarCodigoProd($prefijo)
+{
+    global $crudProducto;
+    try {
+        $productos = $crudProducto->contarPorCodigoProd($prefijo);
+        $response = [
+            'status' => 'success',
+            'data' => $productos
+        ];
+        echo json_encode($response);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error al contar productos por código: ' . $e->getMessage()
         ]);
     }
     exit();

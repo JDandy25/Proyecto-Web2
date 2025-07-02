@@ -4,25 +4,39 @@ let currentPageProductos = 1;
 const itemsPerPageProductos = 10;
 
 const btnRegistrarProducto = document.getElementById('btnRegistrarProducto');
+console.log('btnRegistrarProducto:', btnRegistrarProducto);
 cargarCategorias();
 
 // Registro de nuevo producto
 btnRegistrarProducto.addEventListener('click', function (event) {
     event.preventDefault();
     const formularioProducto = document.getElementById('FormRegistrarProducto');
+    console.log('Formulario de registro:', formularioProducto);
     const formData = new FormData(formularioProducto);
-    
+
     // Validación simple
+    console.log('Datos del formulario:', {
+        nombre_producto: formData.get('nombre_producto'),
+        codigo: formData.get('codigo'),
+        stock: formData.get('stock'),
+        id_categoria: formData.get('id_categoria')
+    });
+
     if (!formData.get('nombre_producto') || !formData.get('codigo') || !formData.get('stock') || !formData.get('id_categoria')) {
         alert('Por favor, completa todos los campos requeridos.');
         return;
     }
 
+    console.log('ID categoría seleccionado:', formData.get('id_categoria'));
+
     fetch('/Proyecto-Web2/C_Logica/logica_productos.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Respuesta cruda del backend al registrar:', response);
+        return response.json();
+    })
     .then(data => {
         console.log('Respuesta del backend al registrar:', data);
         if (data.status === 'success') {
@@ -40,15 +54,19 @@ btnRegistrarProducto.addEventListener('click', function (event) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error al registrar producto:', error);
         alert('Error al registrar producto');
     });
 });
 
 // Listar productos
 function listProductos() {
+    console.log('Llamando a listProductos()');
     fetch('/Proyecto-Web2/C_Logica/logica_productos.php', { method: 'GET' })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Respuesta cruda al listar productos:', response);
+        return response.json();
+    })
     .then(data => {
         console.log('Datos recibidos del servidor:', data); 
 
@@ -66,7 +84,7 @@ function listProductos() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error al listar productos:', error);
         productos = [];
         filteredProductos = [];
         currentPageProductos = 1;
@@ -87,6 +105,7 @@ function getTotalPagesProductos() {
 }
 
 function renderProductos() {
+    console.log('Renderizando productos:', productos);
     const tbody = document.querySelector('.tbodyProducto');
     tbody.innerHTML = '';
 
@@ -109,12 +128,14 @@ function renderProductos() {
     const paginatedProductos = dataToPaginate.slice(startIndex, endIndex);
 
     paginatedProductos.forEach(producto => {
+        console.log('Producto a renderizar:', producto);
         const row = document.createElement('tr');
         row.innerHTML = `
             <input type="hidden" name="idProducto-${producto.id_producto}" value="${producto.id_producto}">
-            <td><img src="${producto.imagen || 'img/default-product.png'}" alt="Imagen producto" class="producto-imagen"></td>
             <td>${producto.nombre}</td>
             <td>${producto.codigo}</td>
+            <td><img src="${producto.imagen || 'img/default-product.png'}" alt="Imagen producto" class="producto-imagen"></td>
+            
             <td>${producto.stock}</td>
             <td>${producto.categoria || 'Sin categoría'}</td>
             <td>${getEstadoTexto(producto.estado)}</td>
@@ -239,6 +260,7 @@ function actualizarProducto(idProducto) {
     fetch(`/Proyecto-Web2/C_Logica/logica_productos.php?action=obtenerProducto&id=${idProducto}`)
     .then(response => response.json())
     .then(data => {
+        console.log('Datos del producto para actualizar:', data);
         if (data.status === 'success' && data.data) {
             const producto = data.data;
             document.getElementById('idActualizarProducto').value = producto.id_producto;
@@ -275,7 +297,8 @@ document.getElementById('btnActualizarProducto').addEventListener('click', (even
         body: formData
     })
     .then(response => response.json())
-    .then(data => {
+    .then (data => {
+        console.log('Respuesta al actualizar producto:', data);
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
@@ -295,7 +318,7 @@ document.getElementById('btnActualizarProducto').addEventListener('click', (even
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error al actualizar producto:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error en la conexión',
@@ -315,6 +338,7 @@ function actualizarEstadoProducto(id, estado) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Respuesta al actualizar estado:', data);
         if (data.status === 'success') {
             Swal.fire({
                 icon: 'success',
@@ -334,7 +358,7 @@ function actualizarEstadoProducto(id, estado) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error al actualizar estado:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error en la conexión',
@@ -345,9 +369,23 @@ function actualizarEstadoProducto(id, estado) {
 
 // Cargar categorías
 function cargarCategorias() {
+    console.log('Llamando a cargarCategorias()');
     fetch('/Proyecto-Web2/C_Logica/logica_productos.php?action=obtenerCategorias')
-    .then(response => response.json())
+    .then(response => {
+        console.log('Respuesta cruda al cargar categorías:', response);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+                throw new Error(`Expected JSON but got: ${text.substring(0, 100)}...`);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Datos recibidos de categorías:', data);
         if (data.status === 'success') {
             const selectCategoria = document.getElementById('id_categoria_reg');
             selectCategoria.innerHTML = '<option value="">Seleccione</option>';
@@ -359,15 +397,45 @@ function cargarCategorias() {
             });
         } else {
             console.error('Error al cargar categorías desde el servidor:', data.message);
+            Swal.fire('Error', 'No se pudieron cargar las categorías', 'error');
         }
     })
     .catch(error => {
         console.error('Error en la solicitud Fetch para categorías:', error);
+        Swal.fire('Error', `Error al cargar categorías: ${error.message}`, 'error');
     });
 }
 
+// Generar código automáticamente al escribir el nombre del producto
+document.getElementById('nombre_producto_reg').addEventListener('input', function () {
+    const nombre = this.value.trim();
+    if (nombre.length >= 3) {
+        const prefijo = nombre.substring(0, 3).toUpperCase();
+        console.log('Prefijo generado para código:', prefijo);
+        fetch(`/Proyecto-Web2/C_Logica/logica_productos.php?action=contarCodigoProd&prefijo=${prefijo}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Respuesta del backend para código automático:', data);
+                let numero = 1;
+                // El backend debe devolver { cantidad: N }
+                if (data && data.cantidad !== undefined) {
+                    numero = data.cantidad + 1;
+                }
+                const codigo = `${prefijo}${String(numero).padStart(3, '0')}`;
+                document.getElementById('codigo_reg').value = codigo;
+            })
+            .catch((error) => {
+                console.error('Error al generar código automático:', error);
+                document.getElementById('codigo_reg').value = `${prefijo}001`;
+            });
+    } else {
+        document.getElementById('codigo_reg').value = '';
+    }
+});
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM completamente cargado');
     cargarCategorias();
     listProductos();
 });

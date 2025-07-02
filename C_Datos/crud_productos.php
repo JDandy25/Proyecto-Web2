@@ -1,7 +1,7 @@
 <?php
 
 require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Datos/conexion.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_producto.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_productos.php';
 
 class ProductoDAO
 {
@@ -87,7 +87,7 @@ class ProductoDAO
             $producto->setCodigoProd($result['codigoProd']);
             $producto->setStock($result['stock']);
             $producto->setImagen($result['imagen']);
-            $producto->setIdCategoria($result['id_categoria']);
+            $producto->setIdCategoria($result['categoria']);
             $producto->setEstado($result['estado']);
             $productos[] = $producto;
         }
@@ -190,4 +190,25 @@ class ProductoDAO
 
         return $productos;
     }
+
+    public function obtenerUltimoCodigo($prefijo)
+    {
+        $sql = "SELECT codigoProd FROM producto WHERE codigoProd LIKE :prefijo ORDER BY codigoProd DESC LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':prefijo', $prefijo . '%');
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['codigoProd'] : null;
+    }
+
+    public function contarPorCodigoProd($prefijo)
+    {
+        $sql = "SELECT COUNT(*) as cantidad FROM producto WHERE codigoProd LIKE :prefijo";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bindValue(':prefijo', $prefijo . '%');
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? intval($row['cantidad']) : 0;
+    }
 }
+

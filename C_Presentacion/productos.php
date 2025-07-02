@@ -43,10 +43,9 @@
                 <div class="groupDatos">
                     <label for="estado_producto_reg">Estado</label>
                     <select name="estado_producto" class="inputDatos" id="estado_producto_reg">
-                        <option value="1">Disponible</option>
-                        <option value="2">Agotado</option>
-                        <option value="3">Descontinuado</option>
-                    </select>
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+¿                    </select>
                 </div>
             </div>
         </div>
@@ -144,9 +143,8 @@
           <div class="groupDatos">
             <label for="estado_producto_act" class="label">Estado</label>
             <select class="inputDatos" name="estado_producto_actualizar" id="estado_producto_act">
-              <option value="1">Disponible</option>
-              <option value="2">Agotado</option>
-              <option value="3">Descontinuado</option>
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
             </select>
           </div>
         </div>
