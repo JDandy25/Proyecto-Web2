@@ -1,7 +1,7 @@
 <?php
 require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Datos/crud_compras.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/compras.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/comprasDetalles.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_compras.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_comprasDetalles.php';
 
 header('Content-Type: application/json');
 
@@ -13,18 +13,21 @@ switch ($_SERVER['REQUEST_METHOD']) {
         break;
 
     case 'GET':
-        if (isset($_GET['action'])) { 
+        if (isset($_GET['action'])) {
             switch ($_GET['action']) {
                 case 'listar':
                     listarCompras();
                     break;
-                case 'obtener_proveedores_productos':
-                    obtenerProveedoresYProductos();
+                case 'proveedores':
+                    obtenerProveedores();
                     break;
-                case 'obtener_por_id':
+                case 'productos':
+                    obtenerProductos();
+                    break;
+                case 'obtener':
                     obtenerCompraPorId();
                     break;
-                case 'obtener_ultimos_numeros':  // <-- NUEVO CASE AQUÍ
+                case 'ultimos_numeros':
                     obtenerUltimosNumeros();
                     break;
                 default:
@@ -39,10 +42,6 @@ switch ($_SERVER['REQUEST_METHOD']) {
         }
         break;
 
-    case 'PUT':
-        actualizarCompra();
-        break;
-
     case 'PATCH':
         cambiarEstadoCompra();
         break;
@@ -55,31 +54,61 @@ switch ($_SERVER['REQUEST_METHOD']) {
         break;
 }
 
+// Registrar una compra con detalles
 function registrarCompra() {
     global $crudCompra;
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!$data) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Datos no recibidos'
+        ]);
+        return;
+    }
+
+    // Generar serie y número de comprobante
+    $tipoComprobante = $data['tipoComprobante'];
+    $serieComprobante = ($tipoComprobante === 'Factura') ? 'F001' : 'B001';
+
+    // Obtener el último número de comprobante para el tipo
+    $ultimos = $crudCompra->obtenerUltimosNumerosComprobante();
+    $ultimoNumero = 0;
+    if ($ultimos && isset($ultimos[$tipoComprobante][0]['ultimo_numero'])) {
+        $ultimoNumero = (int)$ultimos[$tipoComprobante][0]['ultimo_numero'];
+    }
+    $nuevoNumero = str_pad($ultimoNumero + 1, 8, '0', STR_PAD_LEFT);
 
     $compra = new Compra();
-    $compra->setTipoComprobante($data['tipoComprobante'] ?? '');
-    $compra->setSerieComprobante($data['serieComprobante'] ?? '');
-    $compra->setNumComprobante($data['numComprobante'] ?? '');
-    $compra->setFechaHora($data['fechaHora'] ?? date('Y-m-d H:i:s'));
-    $compra->setImpuesto($data['impuesto'] ?? 0);
-    $compra->setTotalCompra($data['totalCompra'] ?? 0);
-    $compra->setIdEmpleado($data['idEmpleado'] ?? 0);
-    $compra->setIdProveedor($data['idProveedor'] ?? 0);
-    $compra->setEstado($data['estado'] ?? '1');
+    $compra->setTipoComprobante($tipoComprobante);
+    $compra->setSerieComprobante($serieComprobante);
+    $compra->setNumComprobante($nuevoNumero);
+    $compra->setFechaHora(date('Y-m-d H:i:s'));
+    $compra->setIdEmpleado($data['id_empleado']);
+    $compra->setIdProveedor($data['id_proveedor']);
+    $compra->setEstado(1);
 
-    // Procesar detalles
-    $detalles = $data['detalles'] ?? [];
-    foreach ($detalles as $detalleData) {
+    // Calcular total e impuesto
+    $total = 0;
+    $detalles = [];
+    foreach ($data['detalles'] as $detalleData) {
+        $subtotal = $detalleData['cantidad'] * $detalleData['precioCompra'];
+        $total += $subtotal;
+
         $detalle = new DetalleCompra();
-        $detalle->setIdProducto($detalleData['idProducto'] ?? 0);
-        $detalle->setCantidad($detalleData['cantidad'] ?? 0);
-        $detalle->setPrecioCompra($detalleData['precioCompra'] ?? 0);
-        $detalle->setPrecioVenta($detalleData['precioVenta'] ?? 0);
-        
+        $detalle->setIdProducto($detalleData['id_producto']);
+        $detalle->setCantidad($detalleData['cantidad']);
+        $detalle->setPrecioCompra($detalleData['precioCompra']);
+        $detalle->setPrecioVenta($detalleData['precioVenta']);
+        $detalles[] = $detalle;
+    }
+    $impuesto = round($total * 0.18, 2); // 18% IGV Perú
+    $compra->setImpuesto($impuesto);
+    $compra->setTotalCompra($total);
+
+    // Asignar detalles
+    foreach ($detalles as $detalle) {
         $compra->agregarDetalle($detalle);
     }
 
@@ -98,27 +127,7 @@ function registrarCompra() {
     }
 }
 
-function obtenerProveedoresYProductos() {
-    global $crudCompra;
-
-    try {
-        $proveedores = $crudCompra->obtenerProveedoresActivos();
-        $productos = $crudCompra->obtenerProductosActivos();
-
-        echo json_encode([
-            'status' => 'success',
-            'proveedores' => $proveedores,
-            'productos' => $productos
-        ]);
-    } catch (Exception $e) {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Error al obtener proveedores y productos: ' . $e->getMessage()
-        ]);
-    }
-    exit();
-}
-
+// Listar todas las compras con detalles
 function listarCompras() {
     global $crudCompra;
 
@@ -130,6 +139,17 @@ function listarCompras() {
         ];
 
         foreach ($compras as $compra) {
+            $detalles = [];
+            foreach ($compra->getDetalles() as $detalle) {
+                $detalles[] = [
+                    'id_detalleCompra' => $detalle->getIdDetalleCompra(),
+                    'id_producto' => $detalle->getIdProducto(),
+                    'cantidad' => $detalle->getCantidad(),
+                    'precioCompra' => $detalle->getPrecioCompra(),
+                    'precioVenta' => $detalle->getPrecioVenta()
+                ];
+            }
+
             $response['data'][] = [
                 'id_compra' => $compra->getIdCompra(),
                 'tipoComprobante' => $compra->getTipoComprobante(),
@@ -139,10 +159,11 @@ function listarCompras() {
                 'impuesto' => $compra->getImpuesto(),
                 'totalCompra' => $compra->getTotalCompra(),
                 'id_empleado' => $compra->getIdEmpleado(),
-                'empleado' => $compra->getEmpleadoNombre(), // Asumiendo que agregaste este método
+                'empleado' => $compra->getEmpleadoNombre(),
                 'id_proveedor' => $compra->getIdProveedor(),
-                'proveedor' => $compra->getProveedorNombre(), // Asumiendo que agregaste este método
-                'estado' => $compra->getEstado()
+                'proveedor' => $compra->getProveedorNombre(),
+                'estado' => $compra->getEstado(),
+                'detalles' => $detalles
             ];
         }
 
@@ -155,51 +176,85 @@ function listarCompras() {
     }
 }
 
+// Obtener proveedores activos
+function obtenerProveedores() {
+    global $crudCompra;
+    try {
+        $proveedores = $crudCompra->obtenerProveedoresActivos();
+        echo json_encode([
+            'status' => 'success',
+            'data' => $proveedores
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error al obtener proveedores: ' . $e->getMessage()
+        ]);
+    }
+}
+
+// Obtener productos activos (para autocompletar)
+function obtenerProductos() {
+    global $crudCompra;
+    try {
+        $productos = $crudCompra->obtenerProductosActivos();
+        echo json_encode([
+            'status' => 'success',
+            'data' => $productos
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error al obtener productos: ' . $e->getMessage()
+        ]);
+    }
+}
+
+// Obtener una compra por ID (con detalles)
 function obtenerCompraPorId() {
     global $crudCompra;
-
-    $id = $_GET['id'] ?? 0;
-
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'ID de compra no proporcionado.'
+        ]);
+        return;
+    }
     try {
         $compra = $crudCompra->obtenerPorId($id);
-        
         if (!$compra) {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Compra no encontrada'
+                'message' => 'Compra no encontrada.'
             ]);
             return;
         }
-
         $detalles = [];
         foreach ($compra->getDetalles() as $detalle) {
             $detalles[] = [
-                'id_detalle' => $detalle->getIdDetalleCompra(),
+                'id_detalleCompra' => $detalle->getIdDetalleCompra(),
                 'id_producto' => $detalle->getIdProducto(),
-                'producto' => $detalle->getProductoNombre(), // Asumiendo que agregaste este método
                 'cantidad' => $detalle->getCantidad(),
                 'precioCompra' => $detalle->getPrecioCompra(),
                 'precioVenta' => $detalle->getPrecioVenta()
             ];
         }
-
         echo json_encode([
             'status' => 'success',
             'data' => [
-                'compra' => [
-                    'id_compra' => $compra->getIdCompra(),
-                    'tipoComprobante' => $compra->getTipoComprobante(),
-                    'serieComprobante' => $compra->getSerieComprobante(),
-                    'numComprobante' => $compra->getNumComprobante(),
-                    'fechaHora' => $compra->getFechaHora(),
-                    'impuesto' => $compra->getImpuesto(),
-                    'totalCompra' => $compra->getTotalCompra(),
-                    'id_empleado' => $compra->getIdEmpleado(),
-                    'empleado' => $compra->getEmpleadoNombre(),
-                    'id_proveedor' => $compra->getIdProveedor(),
-                    'proveedor' => $compra->getProveedorNombre(),
-                    'estado' => $compra->getEstado()
-                ],
+                'id_compra' => $compra->getIdCompra(),
+                'tipoComprobante' => $compra->getTipoComprobante(),
+                'serieComprobante' => $compra->getSerieComprobante(),
+                'numComprobante' => $compra->getNumComprobante(),
+                'fechaHora' => $compra->getFechaHora(),
+                'impuesto' => $compra->getImpuesto(),
+                'totalCompra' => $compra->getTotalCompra(),
+                'id_empleado' => $compra->getIdEmpleado(),
+                'empleado' => $compra->getEmpleadoNombre(),
+                'id_proveedor' => $compra->getIdProveedor(),
+                'proveedor' => $compra->getProveedorNombre(),
+                'estado' => $compra->getEstado(),
                 'detalles' => $detalles
             ]
         ]);
@@ -211,52 +266,19 @@ function obtenerCompraPorId() {
     }
 }
 
-function actualizarCompra() {
+// Cambiar estado de compra (activo/inactivo)
+function cambiarEstadoCompra() {
     global $crudCompra;
-
-    $putData = json_decode(file_get_contents("php://input"), true);
-
-    if ($putData === null) {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $id = $data['id'] ?? null;
+    $estado = $data['estado'] ?? null;
+    if (!$id || $estado === null) {
         echo json_encode([
             'status' => 'error',
-            'message' => 'No se pudieron leer los datos de la solicitud'
+            'message' => 'Datos insuficientes para cambiar estado.'
         ]);
         return;
     }
-
-    $compra = new Compra();
-    $compra->setIdCompra($putData['id_compra'] ?? 0);
-    $compra->setTipoComprobante($putData['tipoComprobante'] ?? '');
-    $compra->setSerieComprobante($putData['serieComprobante'] ?? '');
-    $compra->setNumComprobante($putData['numComprobante'] ?? '');
-    $compra->setFechaHora($putData['fechaHora'] ?? '');
-    $compra->setImpuesto($putData['impuesto'] ?? 0);
-    $compra->setTotalCompra($putData['totalCompra'] ?? 0);
-    $compra->setIdEmpleado($putData['id_empleado'] ?? 0);
-    $compra->setIdProveedor($putData['id_proveedor'] ?? 0);
-    $compra->setEstado($putData['estado'] ?? '1');
-
-    try {
-        $crudCompra->actualizar($compra);
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Compra actualizada correctamente'
-        ]);
-    } catch (Exception $e) {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Error al actualizar compra: ' . $e->getMessage()
-        ]);
-    }
-}
-
-function cambiarEstadoCompra() {
-    global $crudCompra;
-
-    $data = json_decode(file_get_contents('php://input'), true);
-    $id = $data['id'] ?? 0;
-    $estado = $data['estado'] ?? '0'; // Por defecto inactivo
-
     try {
         $crudCompra->cambiarEstado($id, $estado);
         echo json_encode([
@@ -266,60 +288,24 @@ function cambiarEstadoCompra() {
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',
-            'message' => 'Error al actualizar estado: ' . $e->getMessage()
+            'message' => 'Error al cambiar estado: ' . $e->getMessage()
         ]);
     }
+}
 
-
-    function obtenerUltimosNumeros() {
-        global $crudCompras;
+// Obtener últimos números de comprobante (para autogenerar)
+function obtenerUltimosNumeros() {
+    global $crudCompra;
     try {
-        // Obtener datos mediante el CRUD
-        $ultimosNumeros = $crudCompras->obtenerUltimosNumerosComprobante();
-        $recientes = $crudCompras->obtenerComprobantesRecientes();
-
-        // Inicializar valores por defecto
-        $respuesta = [
-            'ultimaFactura' => 0,
-            'ultimaBoleta' => 0
-        ];
-
-        // Procesar últimos números
-        if ($ultimosNumeros) {
-            foreach ($ultimosNumeros as $tipo => $datos) {
-                if ($tipo === 'Factura') {
-                    $respuesta['ultimaFactura'] = (int)$datos[0]['ultimo_numero'];
-                } elseif ($tipo === 'Boleta') {
-                    $respuesta['ultimaBoleta'] = (int)$datos[0]['ultimo_numero'];
-                }
-            }
-        }
-
-        // Preferir números recientes si existen
-        if ($recientes) {
-            foreach ($recientes as $tipo => $datos) {
-                if ($tipo === 'Factura' && $datos[0]['ultimo_numero'] > $respuesta['ultimaFactura']) {
-                    $respuesta['ultimaFactura'] = (int)$datos[0]['ultimo_numero'];
-                } elseif ($tipo === 'Boleta' && $datos[0]['ultimo_numero'] > $respuesta['ultimaBoleta']) {
-                    $respuesta['ultimaBoleta'] = (int)$datos[0]['ultimo_numero'];
-                }
-            }
-        }
-
+        $ultimos = $crudCompra->obtenerUltimosNumerosComprobante();
         echo json_encode([
             'status' => 'success',
-            'data' => $respuesta,
-            'message' => 'Números obtenidos correctamente'
+            'data' => $ultimos
         ]);
-
     } catch (Exception $e) {
-        error_log("Error en obtenerUltimosNumeros: " . $e->getMessage());
         echo json_encode([
             'status' => 'error',
-            'message' => 'Error al obtener los últimos números',
-            'error' => $e->getMessage()
+            'message' => 'Error al obtener últimos números: ' . $e->getMessage()
         ]);
     }
 }
-}
-

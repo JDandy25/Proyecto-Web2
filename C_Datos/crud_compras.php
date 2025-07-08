@@ -1,7 +1,7 @@
 <?php
 require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Datos/conexion.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/compras.php';
-require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/comprasDetalles.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_compras.php';
+require_once $_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Entidad/class_comprasDetalles.php';
 
 class CompraDAO
 {
@@ -131,37 +131,78 @@ class CompraDAO
     }
 
     // Obtener todas las compras (sin detalles)
-    public function obtenerTodos()
-    {
-        $sql = "SELECT c.*, e.nombre as empleado, p.nombres as proveedor 
-               FROM compra c
-               LEFT JOIN empleado e ON c.id_empleado = e.id_empleado
-               LEFT JOIN proveedor p ON c.id_proveedor = p.id_proveedor
-               ORDER BY c.fechaHora DESC";
-        
-        $stmt = $this->conexion->prepare($sql);
-        $stmt->execute();
-        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+public function obtenerTodos()
+{
+    $sql = "SELECT 
+                c.id_compra, 
+                c.tipoComprobante, 
+                c.serie_Comprobante,
+                c.numComprobante, 
+                c.fechaHora, 
+                c.impuesto,
+                c.total_compra,
+                c.estado,
+                c.id_empleado,
+                e.nombre as empleado, 
+                c.id_proveedor,
+                p.nombres as proveedor, 
+                pt.id_producto,
+                pt.nombre as producto, 
+                dc.id_detalleCompra,
+                dc.cantidad, 
+                dc.precio_compra, 
+                dc.precio_venta
+            FROM compra c 
+            INNER JOIN detallecompra dc ON c.id_compra = dc.id_compra
+            INNER JOIN empleado e ON c.id_empleado = e.id_empleado
+            INNER JOIN proveedor p ON c.id_proveedor = p.id_proveedor
+            INNER JOIN producto pt ON dc.id_producto = pt.id_producto
+            WHERE c.estado = 1
+            ORDER BY c.id_compra DESC";
+    
+    $stmt = $this->conexion->prepare($sql);
+    $stmt->execute();
+    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $compras = [];
-        foreach ($resultados as $resultado) {
+    $compras = [];
+
+    foreach ($resultados as $fila) {
+        $id_compra = $fila['id_compra'];
+
+        // Si aún no se creó esta compra, la creamos
+        if (!isset($compras[$id_compra])) {
             $compra = new Compra();
-            $compra->setIdCompra($resultado['id_compra']);
-            $compra->setTipoComprobante($resultado['tipoComprobante']);
-            $compra->setSerieComprobante($resultado['serie_Comprobante']);
-            $compra->setNumComprobante($resultado['numComprobante']);
-            $compra->setFechaHora($resultado['fechaHora']);
-            $compra->setImpuesto($resultado['impuesto']);
-            $compra->setTotalCompra($resultado['total_compra']);
-            $compra->setIdEmpleado($resultado['id_empleado']);
-            $compra->setIdProveedor($resultado['id_proveedor']);
-            $compra->setEstado($resultado['estado']);
-            
-            $compras[] = $compra;
+            $compra->setIdCompra($fila['id_compra']);
+            $compra->setTipoComprobante($fila['tipoComprobante']);
+            $compra->setSerieComprobante($fila['serie_Comprobante']);
+            $compra->setNumComprobante($fila['numComprobante']);
+            $compra->setFechaHora($fila['fechaHora']);
+            $compra->setImpuesto($fila['impuesto']);
+            $compra->setTotalCompra($fila['total_compra']);
+            $compra->setIdEmpleado($fila['id_empleado']);
+            $compra->setEmpleadoNombre($fila['empleado']);
+            $compra->setIdProveedor($fila['id_proveedor']);
+            $compra->setProveedorNombre($fila['proveedor']);
+            $compra->setEstado($fila['estado']);
+
+            $compras[$id_compra] = $compra;
         }
 
-        return $compras;
+        // Crear detalle y asociarlo a la compra
+        $detalle = new DetalleCompra();
+        $detalle->setIdDetalleCompra($fila['id_detalleCompra']);
+        $detalle->setIdCompra($id_compra);
+        $detalle->setIdProducto($fila['id_producto']);
+        $detalle->setCantidad($fila['cantidad']);
+        $detalle->setPrecioCompra($fila['precio_compra']);
+        $detalle->setPrecioVenta($fila['precio_venta']);
+
+        $compras[$id_compra]->agregarDetalle($detalle);
     }
+
+    // Devolver solo los objetos Compra
+    return array_values($compras);
+}
 
     // Actualizar compra (sin detalles para simplificar)
     public function actualizar(Compra $compra)
@@ -206,7 +247,7 @@ class CompraDAO
     // Métodos adicionales útiles
     public function obtenerProveedoresActivos()
     {
-        $sql = "SELECT id_proveedor, nombre FROM proveedor WHERE estado = 1 ORDER BY nombre ASC";
+        $sql = "SELECT id_proveedor, nombres FROM proveedor WHERE estado = 1 ORDER BY nombres ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
