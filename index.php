@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,6 +11,9 @@
     <link rel="stylesheet" href="CSS/cliente.css">
     <link rel="stylesheet" href="CSS/StylosGenerales.css">
     <link rel="stylesheet" href="CSS/usuario.css">
+    <link rel="stylesheet" href="CSS/reportes.css">
+
+
 
     <title>Administracion Gasolineria</title>
 </head>
@@ -281,6 +285,23 @@
                         </ul>
                     </li>
 
+<li class="list__item list__item--click">
+    <div class="list__button list__button--click">
+        <i class="fa-solid fa-chart-line"></i>
+        <a href="#" class="nav__link">Reportes</a>
+        <i class="fa-solid fa-angle-right list__arrow"></i>
+    </div>
+    <ul class="list__show">
+        <li class="list__inside">
+            <a href="#" id="abrirReporteCompras" class="nav__link nav__link--inside">
+                Compras por Fecha
+            </a>
+        </li>
+    </ul>
+</li>
+
+
+
 
                      <li class="list__item list__item--click">
                         <div class="list__button list__button--click">
@@ -373,6 +394,11 @@
             include($_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Presentacion/turnos.php');
             ?>
 
+            <?php
+            include($_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Presentacion/reportes.php');
+            ?>
+
+
         </div>
     </div>
 
@@ -389,6 +415,8 @@
     <script src="JS/proveedores.js"></script>
     <script src="JS/categorias.js"></script>
     <script src="JS/turnos.js"></script>
+    <script src="JS/reportes.js"></script>
+
 
 
 </body>

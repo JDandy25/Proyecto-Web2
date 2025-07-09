@@ -574,4 +574,35 @@ function actualizarEstadoEmpleado(id, estado) {
         });
 }
 
+
 document.addEventListener('DOMContentLoaded', listEmpleados);
+
+const nombreUsuario = document.getElementById('nombreUsuario').value;
+const contrasena = document.getElementById('contrasena').value;
+const confirmarContrasena = document.getElementById('confirmarContrasena').value;
+const idRol = idRolModal.value;
+
+// ✅ Forma compatible con todos los navegadores:
+let rolNombre = '';
+if (idRolModal.options && idRolModal.options[idRolModal.selectedIndex]) {
+    rolNombre = idRolModal.options[idRolModal.selectedIndex].textContent;
+}
+
+// Validación
+if (!nombreUsuario || !contrasena || !confirmarContrasena || !idRol) {
+    alert('Por favor, complete todos los campos requeridos.');
+    return;
+}
+
+if (contrasena !== confirmarContrasena) {
+    alert('Las contraseñas no coinciden.');
+    return;
+}
+
+// Aquí continúa tu código de actualización...
+// Por ejemplo, puedes hacer un fetch o enviar el formulario con AJAX
+console.log('Usuario:', nombreUsuario);
+console.log('Rol:', rolNombre);
+// ...
+
+

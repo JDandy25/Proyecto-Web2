@@ -63,6 +63,8 @@ const buttonContentPairs = [
     { selector: '.registrarTurno', contentId: 'contenidoRegistrarTurno' },
     { selector: '.buscarTurno', contentId: 'contenidoListaTurno' },
     { selector: '.btnEditar', contentId: 'modal' },
+    { selector: '.verReporteCompras', contentId: 'contenidoReportes' },
+
 
 ];
 
