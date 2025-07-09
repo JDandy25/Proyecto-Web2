@@ -39,8 +39,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
                     break;
             }
         } else {
-
-            listarUsuarios(); // Si no hay acción, listar usuarios por defecto
+            listarUsuarios(); // Por defecto
         }
         break;
 
@@ -64,19 +63,24 @@ switch ($_SERVER['REQUEST_METHOD']) {
         break;
 }
 
+// ======================================
+// FUNCIONES
+// ======================================
+
 function registrarUsuario()
 {
     global $crudUsuario;
-    
-    $usuario = new Usuario();
 
+    $usuario = new Usuario();
     $inputData = json_decode(file_get_contents('php://input'), true);
 
     $usuario->setUsuario($inputData['nombre_usuario'] ?? '');
-    $usuario->setClave($inputData['contrasena'] ?? '');
+
+    // Encriptar contraseña
+   $usuario->setClave($inputData['contrasena'] ?? '');
+
     $usuario->setRol($inputData['id_rol'] ?? '');
     $usuario->setEstado($inputData['estado'] ?? '');
-
 
     try {
         $crudUsuario->insertar($usuario);
@@ -148,7 +152,10 @@ function actualizarUsuario()
     $usuario = new Usuario();
     $usuario->setId($putData['id_usuario_act'] ?? '');
     $usuario->setUsuario($putData['nombre_usuario_act'] ?? '');
-    $usuario->setClave($putData['contrasena_act'] ?? '');
+
+    // Encriptar nueva contraseña
+   $usuario->setClave($putData['contrasena_act'] ?? '');
+
     $usuario->setRol($putData['id_rol_act'] ?? '');
     $usuario->setEstado($putData['estado_act'] ?? '');
 
@@ -171,7 +178,6 @@ function actualizarEstado()
     global $crudUsuario;
 
     $data = json_decode(file_get_contents('php://input'), true);
-    // Aceptar tanto 'id_usuario' como 'id' como identificador
     $id = $data['id_usuario'] ?? $data['id'] ?? '';
     $estado = $data['estado'] ?? 'inactivo';
 
@@ -218,7 +224,8 @@ function eliminarUsuario()
     }
 }
 
-function obtenerRoles() {
+function obtenerRoles()
+{
     global $crudUsuario;
     try {
         $roles = $crudUsuario->obtenerRoles();

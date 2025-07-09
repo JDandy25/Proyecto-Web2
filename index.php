@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header("Location: login.php");
+    exit;
+}
+?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -285,7 +293,10 @@
                         </ul>
                     </li>
 
-<li class="list__item list__item--click">
+
+
+                    
+   <li class="list__item list__item--click">
     <div class="list__button list__button--click">
         <i class="fa-solid fa-chart-line"></i>
         <a href="#" class="nav__link">Reportes</a>
@@ -297,11 +308,28 @@
                 Compras por Fecha
             </a>
         </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteVentas" class="nav__link nav__link--inside">
+                Ventas por Fecha
+            </a>
+        </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteEmpleado" class="nav__link nav__link--inside">
+                Empleados
+            </a>
+        </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteIngresos" class="nav__link nav__link--inside">
+                Ingresos por Día
+            </a>
+        </li>
+        <li class="list__inside">
+    <a href="#" id="abrirReporteStock" class="nav__link nav__link--inside">
+        Productos con Stock
+    </a>
+    </li>
+
     </ul>
-</li>
-
-
-
 
                      <li class="list__item list__item--click">
                         <div class="list__button list__button--click">
@@ -349,12 +377,17 @@
                     <i class="fa-solid fa-house"></i>Inicio</a>
                 <div class="informacion">
                     <div class="groupInfoUsuario">
-                        <img src="" alt="">
-                        <label for="">Bienvenido </label>
-                        <span class="usuario">?</span>
-                        <label for="">/ Rol: </label>
-                        <span class="rol">?</span>
-                    </div>
+    <img src="" alt="">
+    <label for="">Bienvenido </label>
+    <span class="usuario"><?php echo $_SESSION['usuario']; ?></span>
+    <label for="">/ Rol: </label>
+    <span class="rol"><?php echo $_SESSION['rol']; ?></span>
+</div>
+
+                    <div class="cerrarSesion">
+<a href="logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+</div>
+
 
                     <a href=""><img src="" alt="" class="Ajustes" hidden></a>
 
