@@ -285,7 +285,10 @@
                         </ul>
                     </li>
 
-<li class="list__item list__item--click">
+
+
+                    
+   <li class="list__item list__item--click">
     <div class="list__button list__button--click">
         <i class="fa-solid fa-chart-line"></i>
         <a href="#" class="nav__link">Reportes</a>
@@ -297,11 +300,28 @@
                 Compras por Fecha
             </a>
         </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteVentas" class="nav__link nav__link--inside">
+                Ventas por Fecha
+            </a>
+        </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteEmpleado" class="nav__link nav__link--inside">
+                Empleados
+            </a>
+        </li>
+        <li class="list__inside">
+            <a href="#" id="abrirReporteIngresos" class="nav__link nav__link--inside">
+                Ingresos por Día
+            </a>
+        </li>
+        <li class="list__inside">
+    <a href="#" id="abrirReporteStock" class="nav__link nav__link--inside">
+        Productos con Stock
+    </a>
+    </li>
+
     </ul>
-</li>
-
-
-
 
                      <li class="list__item list__item--click">
                         <div class="list__button list__button--click">
