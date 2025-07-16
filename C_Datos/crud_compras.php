@@ -253,6 +253,14 @@ public function obtenerTodos()
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerEmpleadosActivos()
+    {
+        $sql = "SELECT id_empleado, nombre FROM empleado WHERE estado = 1 ORDER BY nombre ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function obtenerProductosActivos()
     {
         $sql = "SELECT id_producto, nombre FROM producto WHERE estado = 1 ORDER BY nombre ASC";

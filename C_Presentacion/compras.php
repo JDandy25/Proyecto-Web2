@@ -1,5 +1,5 @@
 
-<div class="contenidoRegistrarCompra hidden">
+<div class="contenidoRegistrarCompra hidden" style="margin-left: 40px;">
     <form id="FormRegistrarCompra" autocomplete="off" action="" method="post">
         <h1 class="tituloContenido">Registrar Compra</h1>
         <!-- Encabezado de comprobante -->
@@ -30,6 +30,12 @@
             <div class="groupDatos">
                 <label for="proveedor">Proveedor <span class="requerido">*</span></label>
                 <select name="proveedor" id="proveedor" class="inputDatos" required>
+                    <option value="">Seleccione</option>
+                </select>
+            </div>
+            <div class="groupDatos">
+                <label for="empleadosc">Empleado <span class="requerido">*</span></label>
+                <select name="empleadosc" id="empleadosc" class="inputDatos" required>
                     <option value="">Seleccione</option>
                 </select>
             </div>

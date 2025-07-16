@@ -1,4 +1,13 @@
 
+<?php
+session_start();
+// Mostrar errores si existen
+if (isset($_SESSION['error_login'])) {
+    $error = $_SESSION['error_login'];
+    unset($_SESSION['error_login']);
+}
+?>
+
 <html lang="es">
 <head>
     <meta charset="UTF-8">

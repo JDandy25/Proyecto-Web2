@@ -22,6 +22,9 @@ switch ($_SERVER['REQUEST_METHOD']) {
                 case 'clientes':
                     obtenerClientes();
                     break;
+                case 'empleados':
+                    obtenerEmpleados();
+                    break;
                 case 'productos':
                     obtenerProductos();
                     break;
@@ -94,13 +97,13 @@ function registrarVenta() {
     $total = 0;
     $detalles = [];
     foreach ($data['detalles'] as $detalleData) {
-        $subtotal = $detalleData['cantidad'] * $detalleData['precio_venta'] - $detalleData['descuento'];
+        $subtotal = $detalleData['cantidad'] * $detalleData['precioVenta'] - $detalleData['descuento'];
         $total += $subtotal;
 
         $detalle = new DetalleVenta();
         $detalle->setIdProducto($detalleData['id_producto']);
         $detalle->setCantidad($detalleData['cantidad']);
-        $detalle->setPrecioVenta($detalleData['precio_venta']);
+        $detalle->setPrecioVenta($detalleData['precioVenta']);
         $detalle->setDescuento($detalleData['descuento']);
         $detalles[] = $detalle;
     }
@@ -146,7 +149,7 @@ function listarVentas() {
                     'id_detalleVenta' => $detalle->getIdDetalleVenta(),
                     'id_producto' => $detalle->getIdProducto(),
                     'cantidad' => $detalle->getCantidad(),
-                    'precio_venta' => $detalle->getPrecioVenta(),
+                    'precioVenta' => $detalle->getPrecioVenta(),
                     'descuento' => $detalle->getDescuento()
                 ];
             }
@@ -194,6 +197,23 @@ function obtenerClientes() {
     }
 }
 
+function obtenerEmpleados() {
+    global $crudVenta;
+    try {
+        $empleados = $crudVenta->obtenerempleadosActivos();
+        echo json_encode([
+            'status' => 'success',
+            'data' => $empleados
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error al obtener clientes: ' . $e->getMessage()
+        ]);
+    }
+}
+
+
 // Obtener productos activos (para autocompletar)
 function obtenerProductos() {
     global $crudVenta;
@@ -237,7 +257,7 @@ function obtenerVentaPorId() {
                 'id_detalleVenta' => $detalle->getIdDetalleVenta(),
                 'id_producto' => $detalle->getIdProducto(),
                 'cantidad' => $detalle->getCantidad(),
-                'precio_venta' => $detalle->getPrecioVenta(),
+                'precioVenta' => $detalle->getPrecioVenta(),
                 'descuento' => $detalle->getDescuento()
             ];
         }

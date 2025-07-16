@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="CSS/cliente.css">
     <link rel="stylesheet" href="CSS/StylosGenerales.css">
     <link rel="stylesheet" href="CSS/usuario.css">
-
-    <title>Administracion Gasolineria</title>
+    <link rel="stylesheet" href="CSS/reportes.css">
+    <title>Administracion Gasolinera</title>
 </head>
 
 <body>
@@ -19,7 +19,7 @@
     <div class="ContendorPrincipal">
         <div class="menu">
             <div class="contenedorLogo">
-                <img src="recursos/logoGasolineria.webp" alt="">
+                <img src="recursos/logogasolinera.jpeg" alt="">
             </div>
             <nav class="nav">
                 <ul class="list">
@@ -317,6 +317,37 @@
                         </ul>
                     </li>
 
+                    
+                    <li class="list__item list__item--click">
+                        <div class="list__button list__button--click">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <a href="#" class="nav__link">Reportes</a>
+                            <i class="fa-solid fa-angle-right list__arrow"></i>
+                        </div>
+
+                        <ul class="list__show">
+                            <li class="list__inside">
+                                <a href="#" id="abrirReporteTurnos" class="nav__link nav__link--inside">
+                                    Turnos por Fecha
+                                </a>
+                            </li>
+                            <li class="list__inside">
+                            <a href="#" id="abrirReporteEmpleado" class="nav__link nav__link--inside">
+                                Empleados
+                            </a>
+                        </li>
+                        <li class="list__inside">
+                            <a href="#" id="abrirReporteIngresos" class="nav__link nav__link--inside">
+                                Ingresos por Día
+                            </a>
+                        </li>
+                        <li class="list__inside">
+                        <a href="#" id="abrirReporteStock" class="nav__link nav__link--inside">
+                            Productos con Stock
+                        </a>
+                    </li>
+                        </ul>
+                    </li>
 
                      <li class="list__item list__item--click">
                         <div class="list__button list__button--click">
@@ -412,6 +443,10 @@
             include($_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Presentacion/turnos.php');
             ?>
 
+            <?php
+            include($_SERVER["DOCUMENT_ROOT"] . '/Proyecto-Web2/C_Presentacion/reportes.php');
+            ?>
+
         </div>
     </div>
 
@@ -431,6 +466,7 @@
     <script src="JS/proveedores.js"></script>
     <script src="JS/categorias.js"></script>
     <script src="JS/turnos.js"></script>
+    <script src="JS/reportes.js"></script>
 
 
 </body>

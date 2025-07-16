@@ -21,6 +21,9 @@ switch ($_SERVER['REQUEST_METHOD']) {
                 case 'proveedores':
                     obtenerProveedores();
                     break;
+                case 'empleados':
+                    obtenerEmpleados();
+                    break;
                 case 'productos':
                     obtenerProductos();
                     break;
@@ -184,6 +187,23 @@ function obtenerProveedores() {
         echo json_encode([
             'status' => 'success',
             'data' => $proveedores
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error al obtener proveedores: ' . $e->getMessage()
+        ]);
+    }
+}
+
+// Obtener proveedores activos
+function obtenerEmpleados() {
+    global $crudCompra;
+    try {
+        $empleados = $crudCompra->obtenerEmpleadosActivos();
+        echo json_encode([
+            'status' => 'success',
+            'data' => $empleados
         ]);
     } catch (Exception $e) {
         echo json_encode([

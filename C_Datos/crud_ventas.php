@@ -49,7 +49,7 @@ class VentaDAO
             foreach ($venta->getDetalles() as $detalle) {
                 $sqlDetalle = "INSERT INTO detalleventa (
                     id_venta, id_producto, cantidad, 
-                    precio_venta, descuento
+                    precioVenta, descuento
                 ) VALUES (
                     :idVenta, :idProducto, :cantidad, 
                     :precioVenta, :descuento
@@ -124,7 +124,7 @@ class VentaDAO
             $detalle->setIdVenta($detalleData['id_venta']);
             $detalle->setIdProducto($detalleData['id_producto']);
             $detalle->setCantidad($detalleData['cantidad']);
-            $detalle->setPrecioVenta($detalleData['precio_venta']);
+            $detalle->setPrecioVenta($detalleData['precioVenta']);
             $detalle->setDescuento($detalleData['descuento']);
             $venta->agregarDetalle($detalle);
         }
@@ -250,6 +250,14 @@ class VentaDAO
     public function obtenerClientesActivos()
     {
         $sql = "SELECT id_cliente, nombre FROM cliente WHERE estado = 1 ORDER BY nombre ASC";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+        public function obtenerempleadosActivos()
+    {
+        $sql = "SELECT id_empleado, nombre FROM empleado WHERE estado = 1 ORDER BY nombre ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

@@ -1,5 +1,5 @@
 
-<div class="contenidoRegistrarVenta hidden">
+<div class="contenidoRegistrarVenta hidden" style="margin-left: 40px;">
     <form id="FormRegistrarVenta" autocomplete="off" action="" method="post">
         <h1 class="tituloContenido">Registrar Venta</h1>
         <!-- Encabezado de comprobante -->
@@ -30,6 +30,12 @@
             <div class="groupDatos">
                 <label for="cliente">Cliente <span class="requerido">*</span></label>
                 <select name="cliente" id="cliente" class="inputDatos" required>
+                    <option value="">Seleccione</option>
+                </select>
+            </div>
+            <div class="groupDatos">
+                <label for="empleado">Empleado <span class="requerido">*</span></label>
+                <select name="empleado" id="empleado" class="inputDatos" required>
                     <option value="">Seleccione</option>
                 </select>
             </div>
@@ -88,7 +94,7 @@
                     <strong>Impuesto: S/ <span id="impuestoVentaTotal">0.00</span></strong>
                 </div>
             </div>
-            <input type="hidden" id="idEmpleadoLogueadoVenta" value="<?php echo $_SESSION['id_empleado']; ?>">
+           
         </div>
 
         <!-- Botones de acción -->

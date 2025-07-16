@@ -12,6 +12,7 @@ const serieComprobanteVenta = document.getElementById('serieComprobanteVenta');
 const numComprobanteVenta = document.getElementById('numComprobanteVenta');
 const fechaHoraVenta = document.getElementById('fechaHoraVenta');
 const cliente = document.getElementById('cliente');
+const empleado = document.getElementById('empleado');
 const impuestoVentaInput = document.getElementById('impuestoVenta');
 const productoBuscarVenta = document.getElementById('productoBuscarVenta');
 const idProductoSeleccionadoVenta = document.getElementById('idProductoSeleccionadoVenta');
@@ -40,6 +41,7 @@ const idEmpleadoLogueadoVenta = document.getElementById('idEmpleadoLogueadoVenta
 // --- Inicialización ---
 document.addEventListener('DOMContentLoaded', () => {
     cargarClientes();
+    cargarEmpleados();
     cargarProductosVenta();
     setFechaHoraActualVenta();
     cargarUltimosNumerosVenta();
@@ -84,8 +86,26 @@ function cargarClientes() {
                 data.data.forEach(cli => {
                     const option = document.createElement('option');
                     option.value = cli.id_cliente;
-                    option.textContent = cli.nombres; // <-- CORREGIDO
+                    option.textContent = cli.nombre; // <-- CORREGIDO
                     cliente.appendChild(option);
+                });
+            }
+        });
+}
+
+// --- Cargar Empleados ---
+function cargarEmpleados() {
+    fetch('/Proyecto-Web2/C_Logica/logica_ventas.php?action=empleados')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                empleadosDisponibles = data.data;
+                empleado.innerHTML = '<option value="">Seleccione</option>';
+                data.data.forEach(cli => {
+                    const option = document.createElement('option');
+                    option.value = cli.id_empleado;
+                    option.textContent = cli.nombre; // <-- CORREGIDO
+                    empleado.appendChild(option);
                 });
             }
         });
@@ -179,7 +199,7 @@ btnAgregarDetalleVenta.addEventListener('click', function () {
         id_producto: idProd,
         nombre: nombreProd,
         cantidad,
-        precio_venta: precioVenta,
+        precioVenta: precioVenta,
         descuento
     });
 
@@ -201,13 +221,13 @@ function renderDetallesVenta() {
     tbodyDetallesVenta.innerHTML = '';
     let total = 0;
     detallesVenta.forEach((det, idx) => {
-        const subtotal = det.cantidad * det.precio_venta - det.descuento;
+        const subtotal = det.cantidad * det.precioVenta - det.descuento;
         total += subtotal;
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${det.nombre}</td>
             <td>${det.cantidad}</td>
-            <td>${det.precio_venta.toFixed(2)}</td>
+            <td>${det.precioVenta.toFixed(2)}</td>
             <td>${det.descuento ? det.descuento.toFixed(2) : '-'}</td>
             <td>${subtotal.toFixed(2)}</td>
             <td><button type="button" class="btn btnQuitarDetalleVenta" data-idx="${idx}"><i class="fa-solid fa-trash"></i></button></td>
@@ -245,7 +265,7 @@ btnRegistrarVenta.addEventListener('click', function (e) {
         serieComprobante: serieComprobanteVenta.value,
         numComprobante: numComprobanteVenta.value,
         fechaHora: fechaHoraVenta.value,
-        id_empleado: idEmpleadoLogueadoVenta.value,
+        id_empleado: empleado.value,
         id_cliente: cliente.value,
         impuesto: parseFloat(impuestoVentaInput.value),
         detalles: detallesVenta
@@ -390,12 +410,12 @@ function verDetalleVenta(id) {
             if (data.status === 'success') {
                 detalleVentaBody.innerHTML = '';
                 data.data.detalles.forEach(det => {
-                    const subtotal = det.cantidad * det.precio_venta - det.descuento;
+                    const subtotal = det.cantidad * det.precioVenta - det.descuento;
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${det.nombre || ''}</td>
                         <td>${det.cantidad}</td>
-                        <td>${parseFloat(det.precio_venta).toFixed(2)}</td>
+                        <td>${parseFloat(det.precioVenta).toFixed(2)}</td>
                         <td>${det.descuento ? parseFloat(det.descuento).toFixed(2) : '-'}</td>
                         <td>${subtotal.toFixed(2)}</td>
                     `;
@@ -466,7 +486,7 @@ btnImprimirVenta.addEventListener('click', function () {
     const columns = [
         { header: 'Producto', dataKey: 'nombre' },
         { header: 'Cantidad', dataKey: 'cantidad' },
-        { header: 'Precio Venta', dataKey: 'precio_venta' },
+        { header: 'Precio Venta', dataKey: 'precioVenta' },
         { header: 'Descuento', dataKey: 'descuento' },
         { header: 'Subtotal', dataKey: 'subtotal' }
     ];
@@ -474,9 +494,9 @@ btnImprimirVenta.addEventListener('click', function () {
     const rows = detallesVenta.map(det => ({
         nombre: det.nombre,
         cantidad: det.cantidad,
-        precio_venta: parseFloat(det.precio_venta).toFixed(2),
+        precioVenta: parseFloat(det.precioVenta).toFixed(2),
         descuento: det.descuento ? parseFloat(det.descuento).toFixed(2) : '0.00',
-        subtotal: (det.cantidad * det.precio_venta - det.descuento).toFixed(2)
+        subtotal: (det.cantidad * det.precioVenta - det.descuento).toFixed(2)
     }));
 
     doc.autoTable({

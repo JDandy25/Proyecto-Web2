@@ -12,6 +12,7 @@ const serieComprobante = document.getElementById('serieComprobante');
 const numComprobante = document.getElementById('numComprobante');
 const fechaHora = document.getElementById('fechaHora');
 const proveedor = document.getElementById('proveedor');
+const empleadosc = document.getElementById('empleadosc');
 const impuestoInput = document.getElementById('impuesto');
 const productoBuscar = document.getElementById('productoBuscar');
 const idProductoSeleccionado = document.getElementById('idProductoSeleccionado');
@@ -39,7 +40,9 @@ const sugerenciasProducto = document.getElementById('sugerenciasProducto');
 // --- Inicialización ---
 document.addEventListener('DOMContentLoaded', () => {
     cargarProveedores();
+    cargarEmpleadosc();
     cargarProductos();
+    
     setFechaHoraActual();
     cargarUltimosNumeros();
     listarCompras();
@@ -83,8 +86,25 @@ function cargarProveedores() {
                 data.data.forEach(prov => {
                     const option = document.createElement('option');
                     option.value = prov.id_proveedor;
-                    option.textContent = prov.nombre;
+                    option.textContent = prov.nombres;
                     proveedor.appendChild(option);
+                });
+            }
+        });
+}
+
+function cargarEmpleadosc() {
+    fetch('/Proyecto-Web2/C_Logica/logica_compras.php?action=empleados')
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                empleadoscDisponibles = data.data;
+                empleadosc.innerHTML = '<option value="">Seleccione</option>';
+                data.data.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id_empleado;
+                    option.textContent = emp.nombre;
+                    empleadosc.appendChild(option);
                 });
             }
         });
@@ -242,7 +262,7 @@ btnRegistrarCompra.addEventListener('click', function (e) {
         serieComprobante: serieComprobante.value,
         numComprobante: numComprobante.value,
         fechaHora: fechaHora.value,
-        id_empleado: 1, // Cambia esto por el ID real del empleado logueado
+        id_empleado: empleadosc.value, 
         id_proveedor: proveedor.value,
         impuesto: parseFloat(impuestoInput.value),
         detalles: detallesCompra
